@@ -10,4 +10,5 @@ public class ApplicationDbContext : DbContext
         : base(options) { }
 
     public DbSet<FileModel> Files { get; set; }
+    public DbSet<FileCollectionModel> FileCollections { get; set; }
 }
