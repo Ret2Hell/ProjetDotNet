@@ -4,11 +4,10 @@ using ProjetDotNet.Models;
 
 namespace ProjetDotNet.Data;
 
-public class ApplicationDbContext : IdentityDbContext
+public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options)
-        : base(options)
-    {
-    }
-    public DbSet<Document> Documents { get; set; }
+        : base(options) { }
+
+    public DbSet<FileModel> Files { get; set; }
 }
