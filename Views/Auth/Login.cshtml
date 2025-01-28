@@ -3,10 +3,9 @@
     ViewData["Title"] = "Login Basic - Pages";
 }
 
-@* @section PageStyles { *@
-@*     <link rel="stylesheet" href="~/css/auth.css"> *@
-@* } *@
-
+@section PageStyles {
+    <link rel="stylesheet" href="~/vendor\css\pages\page-auth.css">
+}
 @* ************** Content ************** *@
 
 <div class="container-xxl">
@@ -18,7 +17,7 @@
                     <!-- Logo -->
                     <div class="app-brand justify-content-center">
                         <a href="/" class="app-brand-link gap-2">
-                            @* <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span> *@
+                            <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span>
                             <span class="app-brand-text demo text-heading fw-bold">@TempData.Peek("appName")</span>
                         </a>
                     </div>
@@ -58,9 +57,9 @@
 
                     <p class="text-center">
                         <span>New on our platform?</span>
-                        @* <a href="/Auth/RegisterBasic"> *@
-                        @*     <span>Create an account</span> *@
-                        @* </a> *@
+                        <a href="/Auth/Register">
+                            <span>Create an account</span>
+                        </a>
                     </p>
                 </div>
             </div>
