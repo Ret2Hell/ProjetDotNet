@@ -1,0 +1,36 @@
+﻿@model IEnumerable<File_Management1.Models.FileMetadata>
+@{
+    ViewData["Title"] = "File List";
+}
+
+<h2>File List</h2>
+
+<table>
+    <thead>
+    <tr>
+        <th>File Name</th>
+        <th>Uploaded By</th>
+        <th>Upload Date</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var file in Model)
+    {
+        <tr>
+            <td>@file.FileName</td>
+            <td>@file.UploadedBy</td>
+            <td>@file.UploadDate.ToString("g")</td>
+            <td>
+                <a asp-action="DownloadFile" asp-controller="Files" asp-route-id="@file.FileId">Download</a>
+                @if (User.IsInRole("Admin"))
+                {
+                    <form asp-action="DeleteFile" asp-controller="Files" asp-route-id="@file.FileId" method="post" style="display:inline;">
+                        <button type="submit">Delete</button>
+                    </form>
+                }
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
