@@ -12,4 +12,5 @@ public class ApplicationDbContext : IdentityDbContext
     }
 
     public DbSet<FileModel> Files { get; set; }
+    public DbSet<FileCollectionModel> FileCollections { get; set; }
 }
