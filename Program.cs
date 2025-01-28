@@ -5,6 +5,7 @@ using Microsoft.IdentityModel.Tokens;
 using ProjetDotNet.Data;
 using System.Text;
 using ProjetDotNet.Service;
+using ProjetDotNet.Service.Email;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -18,7 +19,9 @@ builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorPages();
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddTransient<EmailSender>();
 
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("EmailSettings"));
 
 // Configure Identity with email confirmation
 builder.Services.AddIdentity<IdentityUser, IdentityRole>(options =>

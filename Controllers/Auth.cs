@@ -13,10 +13,15 @@ public class AuthController : Controller
 
     // GET: /Auth/Login
     [HttpGet]
-    public IActionResult Login()
+    public IActionResult Login(string message = "")
     {
-        return View(); // Render the Login view
+        if (!string.IsNullOrEmpty(message))
+        {
+            ViewBag.Message = message;
+        }
+        return View();
     }
+
 
     // POST: /Auth/Login
     [HttpPost]
@@ -51,10 +56,9 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
-        await Task.Delay(1000);
         if (!ModelState.IsValid)
         {
-            return View(model); // Return the view with validation errors
+            return View(model);
         }
 
         var (isSuccess, errors) = await _authService.RegisterAsync(model);
@@ -69,4 +73,23 @@ public class AuthController : Controller
         // Registration successful, redirect to login
         return RedirectToAction("Login");
     }
+    
+    [HttpGet]
+    public async Task<IActionResult> ConfirmEmail(string userId, string token)
+    {
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
+        {
+            return View("Error");
+        }
+
+        var isSuccess = await _authService.ConfirmEmailAsync(userId, token);
+        if (!isSuccess)
+        {
+            return View("Error");
+        }
+        ViewBag.Message = "Email successfully confirmed.";
+        return RedirectToAction("Login", "Auth", new { message = "Email successfully confirmed." });
+    }
+
+
 }

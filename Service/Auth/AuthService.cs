@@ -1,4 +1,9 @@
-﻿namespace ProjetDotNet.Service;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Abstractions;
+using Microsoft.AspNetCore.Mvc.Routing;
+using ProjetDotNet.Service.Email;
+
+namespace ProjetDotNet.Service;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
@@ -12,13 +17,18 @@ using System;
 public class AuthService : IAuthService
 {
     private readonly UserManager<IdentityUser> _userManager;
+    private readonly EmailSender _emailSender;
     private readonly IConfiguration _configuration;
+    private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly IUrlHelperFactory _urlHelperFactory;
 
-    public AuthService(UserManager<IdentityUser> userManager, IConfiguration configuration)
+    public AuthService(UserManager<IdentityUser> userManager, IConfiguration configuration, EmailSender emailSender, IHttpContextAccessor httpContextAccessor, IUrlHelperFactory urlHelperFactory)
     {
         _userManager = userManager;
+        _emailSender = emailSender;
         _configuration = configuration;
-
+        _httpContextAccessor = httpContextAccessor;
+        _urlHelperFactory = urlHelperFactory;
     }
 
     public async Task<string> LoginAsync(LoginViewModel model)
@@ -102,6 +112,25 @@ public class AuthService : IAuthService
             if (result.Succeeded)
             {
                 Console.WriteLine($"[INFO] User with Email: {model.Email} successfully registered.");
+                var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
+                var actionContext = new ActionContext(
+                    _httpContextAccessor.HttpContext,
+                    _httpContextAccessor.HttpContext.GetRouteData(),
+                    new ActionDescriptor()
+                );
+
+                // Generate confirmation link
+                var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
+                var confirmationLink = urlHelper.Action(
+                    "ConfirmEmail",
+                    "Auth",
+                    new { userId = user.Id, token },
+                    protocol: _httpContextAccessor.HttpContext.Request.Scheme);
+
+
+                // Send confirmation email
+                await _emailSender.SendEmailAsync(user.Email, "Confirm your email",
+                    $"Please confirm your email by clicking this link: <a href='{confirmationLink}'>link</a>");
                 return (true, errors);
             }
             else
@@ -124,5 +153,31 @@ public class AuthService : IAuthService
         }
     }
 
+    public async Task<bool> ConfirmEmailAsync(string userId, string token) {
+        Console.WriteLine($"[INFO] ConfirmEmailAsync started for UserId: {userId}");
 
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            Console.WriteLine($"[WARNING] ConfirmEmail failed: No user found with UserId: {userId}");
+            return false;
+        }
+
+        Console.WriteLine($"[INFO] User found for UserId: {userId}. Confirming email.");
+
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+        if (result.Succeeded)
+        {
+            Console.WriteLine($"[INFO] Email confirmed for UserId: {userId}");
+            return true;
+        }
+
+        Console.WriteLine($"[WARNING] Email confirmation failed for UserId: {userId}. Errors:");
+        foreach (var error in result.Errors)
+        {
+            Console.WriteLine($"[WARNING] {error.Description}");
+        }
+
+        return false;
+    }
 }
