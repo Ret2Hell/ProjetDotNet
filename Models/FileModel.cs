@@ -1,29 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System.ComponentModel.DataAnnotations;
 
-namespace File_Management1.Models
+namespace ProjetDotNet.Models
 {
-    // The AppDbContext class, which is the main entry point for interacting with the database.
-    public class AppDbContext : DbContext
+    public class FileModel
     {
-        // DbSet represents the "Files" table in the database.
-        public DbSet<FileMetadata> Files { get; set; }
+        [Key]
+        public int Id { get; set; }
 
-        // Configure the DbContext to use SQL Server.
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            // Use your actual connection string here
-            optionsBuilder.UseSqlServer("YourConnectionString");
-        }
-    }
-
-    // This class represents metadata related to each file in the database.
-    public class FileMetadata
-    {
-        public int FileId { get; set; }
+        [Required]
         public string FileName { get; set; }
+
+        [Required]
         public string FilePath { get; set; }
+
         public string UploadedBy { get; set; }
-        public DateTime UploadDate { get; set; }
+        
+        public DateTime UploadedOn { get; set; } = DateTime.Now;
     }
 }
