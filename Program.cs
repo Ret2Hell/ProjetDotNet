@@ -56,10 +56,12 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-
+builder.Services.AddScoped<IFileService, FileService>();
+builder.Services.AddScoped<IPdfParserService, PdfParserService>();
 
 // Add controllers with views
 builder.Services.AddControllersWithViews();
+
 
 // Configure email sender service (optional)
 // You can integrate an email-sending service here, like SendGrid or SMTP.
