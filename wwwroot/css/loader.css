@@ -1,0 +1,40 @@
+﻿.btn-primary {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+.btn-primary .loader {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+}
+
+.loader__bounce {
+    width: 6px;
+    height: 6px;
+    background: white; /* Matches button text color */
+    border-radius: 50%;
+    animation: loader-bounce 1.4s infinite ease-out both;
+}
+
+.loader__bounce.first {
+    animation-delay: -0.32s;
+}
+
+.loader__bounce.second {
+    animation-delay: -0.16s;
+}
+
+@keyframes loader-bounce {
+    0%,
+    80%,
+    100% {
+        transform: scale(0);
+    }
+    40% {
+        transform: scale(1);
+    }
+}

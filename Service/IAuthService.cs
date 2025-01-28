@@ -6,5 +6,5 @@ namespace ProjetDotNet.Service;
 public interface IAuthService
 {
     Task<string> LoginAsync(LoginViewModel model);
-    Task<bool> RegisterAsync(RegisterViewModel model);
+    Task<(bool isSuccess, List<string> errors)> RegisterAsync(RegisterViewModel model);
 }

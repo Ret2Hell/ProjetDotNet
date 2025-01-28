@@ -22,6 +22,7 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<IActionResult> Login(LoginViewModel model)
     {
+        await Task.Delay(1000);
         if (!ModelState.IsValid)
         {
             return View(model); // Return the view with validation errors
@@ -30,13 +31,12 @@ public class AuthController : Controller
         var token = await _authService.LoginAsync(model);
         if (token == null)
         {
-            ModelState.AddModelError(string.Empty, "Invalid login attempt.");
+            ModelState.AddModelError(string.Empty, "Invalid credentials");
             return View(model);
         }
 
         // Store token in a cookie, session, or any other preferred method
         HttpContext.Response.Cookies.Append("JwtToken", token);
-
         return RedirectToAction("Index", "Home"); // Redirect to home after successful login
     }
 
@@ -51,15 +51,19 @@ public class AuthController : Controller
     [HttpPost]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
+        await Task.Delay(1000);
         if (!ModelState.IsValid)
         {
             return View(model); // Return the view with validation errors
         }
 
-        var result = await _authService.RegisterAsync(model);
-        if (!result)
+        var (isSuccess, errors) = await _authService.RegisterAsync(model);
+        if (!isSuccess)
         {
-            ModelState.AddModelError(string.Empty, "User already exists or registration failed.");
+            foreach (var error in errors)
+            {
+                ModelState.AddModelError(string.Empty, error);
+            }
             return View(model);
         }
         // Registration successful, redirect to login

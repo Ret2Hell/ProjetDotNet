@@ -72,9 +72,10 @@ public class AuthService : IAuthService
     }
 
 
-    public async Task<bool> RegisterAsync(RegisterViewModel model)
+    public async Task<(bool isSuccess, List<string> errors)> RegisterAsync(RegisterViewModel model)
     {
         Console.WriteLine($"[INFO] RegisterAsync started for Email: {model.Email}");
+        var errors = new List<string>();
 
         // Check if the user already exists
         Console.WriteLine($"[INFO] Checking if a user already exists with Email: {model.Email}");
@@ -82,30 +83,26 @@ public class AuthService : IAuthService
         if (userExists != null)
         {
             Console.WriteLine($"[WARNING] Registration failed: User with Email {model.Email} already exists.");
-            return false;
+            errors.Add("Email already exists.");
+            return (false, errors);
         }
 
         Console.WriteLine($"[INFO] No existing user found for Email: {model.Email}. Proceeding with registration.");
-
-        // Create the IdentityUser object
         var user = new IdentityUser
         {
             Email = model.Email,
             UserName = model.UserName
         };
 
-        Console.WriteLine($"[INFO] Creating new user object for Email: {model.Email} with Username: {model.UserName}");
-
+        Console.WriteLine($"[INFO] Attempting to create user in the database for Email: {model.Email}");
         try
         {
-            // Attempt to create the user
-            Console.WriteLine($"[INFO] Attempting to create user in the database for Email: {model.Email}");
             var result = await _userManager.CreateAsync(user, model.Password);
 
             if (result.Succeeded)
             {
                 Console.WriteLine($"[INFO] User with Email: {model.Email} successfully registered.");
-                return true;
+                return (true, errors);
             }
             else
             {
@@ -113,17 +110,19 @@ public class AuthService : IAuthService
                 foreach (var error in result.Errors)
                 {
                     Console.WriteLine($"[ERROR] {error.Description}");
+                    errors.Add(error.Description);
                 }
-                return false;
+                return (false, errors);
             }
         }
         catch (Exception ex)
         {
-            // Log the exception
             Console.WriteLine($"[ERROR] An exception occurred during registration for Email: {model.Email}");
             Console.WriteLine($"[ERROR] Exception Message: {ex.Message}");
-            throw;
+            errors.Add("An unexpected error occurred. Please try again later.");
+            return (false, errors);
         }
     }
+
 
 }
