@@ -15,9 +15,9 @@ namespace ProjetDotNet.Models
 
         public string Description { get; set; }
 
-        public ICollection<FileModel> Files { get; set; }
+        public ICollection<FileModel>? Files { get; set; }
 
-        public ICollection<FileCollectionModel> SubCollections { get; set; }
+        public ICollection<FileCollectionModel>? SubCollections { get; set; }
         
         [ForeignKey("ParentCollectionId")] 
         public FileCollectionModel? ParentCollection { get; set; }
