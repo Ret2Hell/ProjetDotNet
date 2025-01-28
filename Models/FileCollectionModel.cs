@@ -18,10 +18,8 @@ namespace ProjetDotNet.Models
         public ICollection<FileModel> Files { get; set; }
 
         public ICollection<FileCollectionModel> SubCollections { get; set; }
-
-        public int? ParentCollectionId { get; set; }
-
+        
         [ForeignKey("ParentCollectionId")] 
-        public FileCollectionModel ParentCollection { get; set; }
+        public FileCollectionModel? ParentCollection { get; set; }
     }
 }
