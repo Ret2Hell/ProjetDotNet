@@ -1,124 +1,72 @@
-﻿using File_Management1.Models;
-using Microsoft.AspNetCore.Authorization;
+﻿// Controllers/FileController.cs
+
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
-using System.IO;
-using System.Threading.Tasks;
+using ProjetDotNet.Service;
 
-[Route("api/[controller]")] // Base URL for this controller: /api/files
 [ApiController]
-public class FilesController : Controller
+[Route("api/[controller]")]
+public class FileController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IFileService _fileService;
+    private readonly IPdfParserService _pdfParserService;
 
-    public FilesController(AppDbContext context)
+    public FileController(IFileService fileService, IPdfParserService pdfParserService)
     {
-        _context = context; // Inject the database context for saving file metadata
+        _fileService = fileService;
+        _pdfParserService = pdfParserService;
     }
 
-    // Endpoint: POST /api/files/upload
-
-    //Upload a file
-
-    // Step 1: Display the Upload Page
-    [HttpGet]
-    [Authorize(Roles = "Student, Admin")] // Only students and admins can upload
-    public IActionResult Upload()
+    [HttpPost("upload")]
+    public async Task<IActionResult> Upload(IFormFile file)
     {
-        return View(); // Show the Upload.cshtml view
-    }
-
-    // Step 2: Handle File Upload Request
-    [HttpPost]
-    [Authorize(Roles = "Student, Admin")]
-    public async Task<IActionResult> UploadFile(IFormFile file)
-    {
-        // 1️⃣ Check if a file was selected
         if (file == null || file.Length == 0)
-        {
-            ViewBag.Message = "No file selected or file is empty!";
-            return View("Upload");
-        }
+            return BadRequest("No file uploaded");
 
-        // 2️⃣ Define the folder to store uploaded files
-        var uploadsFolder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-
-        // Create the folder if it does not exist
-        if (!Directory.Exists(uploadsFolder))
-            Directory.CreateDirectory(uploadsFolder);
-
-        // 3️⃣ Generate a unique file name to avoid overwriting existing files
-        var uniqueFileName = Guid.NewGuid().ToString() + "_" + file.FileName;
-        var filePath = Path.Combine(uploadsFolder, uniqueFileName);
-
-        // 4️⃣ Save the file to the server
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
-        // 5️⃣ Save file metadata to the database
-        var fileMetadata = new FileMetadata
-        {
-            FileName = file.FileName, // Store original file name
-            FilePath = "/uploads/" + uniqueFileName, // Store relative path
-            UploadedBy = User.Identity.Name, // Store uploader's username
-            UploadDate = DateTime.Now
-        };
-
-        _context.Files.Add(fileMetadata);
-        await _context.SaveChangesAsync();
-
-        // 6️⃣ Show a success message
-        ViewBag.Message = "File uploaded successfully!";
-        return View("Upload"); // Reload the Upload page with a success message
+        var result = await _fileService.UploadFileAsync(file);
+        return Ok(result);
     }
 
-    // List all files 
-
-    [HttpGet("list")]
-    [Authorize]
-    public async Task<IActionResult> GetFiles()
+    [HttpGet("{id}")]
+    public async Task<IActionResult> Download(int id)
     {
-        var files = await _context.Files.ToListAsync();
-        return View("List", files); // Pass the list of files to the "List" View
-    }
-
-    //Download a file by ID
-    [HttpGet("download/{id}")]
-    [Authorize]
-    public async Task<IActionResult> DownloadFile(int id)
-    {
-        var file = await _context.Files.FindAsync(id);
-        if (file == null)
+        try
+        {
+            var file = await _fileService.GetFileAsync(id);
+            var fileBytes = await _fileService.DownloadFileAsync(id);
+            return File(fileBytes, "application/pdf", file.FileName);
+        }
+        catch (FileNotFoundException)
+        {
             return NotFound();
-
-        var memory = new MemoryStream();
-        using (var stream = new FileStream(file.FilePath, FileMode.Open))
-        {
-            await stream.CopyToAsync(memory);
         }
-        memory.Position = 0;
-
-        return File(memory, "application/octet-stream", file.FileName);
     }
 
-    // Delete a file by ID
-    [HttpDelete("delete/{id}")]
-    [Authorize(Roles = "Admin")]
-    public async Task<IActionResult> DeleteFile(int id)
+    [HttpGet("parse/{id}")]
+    public async Task<IActionResult> ParsePdf(int id)
     {
-        var file = await _context.Files.FindAsync(id);
-        if (file == null)
+        try
+        {
+            var file = await _fileService.GetFileAsync(id);
+            var text = await _pdfParserService.ParsePdfToText(file.FilePath);
+            return Ok(new { Text = text });
+        }
+        catch (FileNotFoundException)
+        {
             return NotFound();
-
-        if (System.IO.File.Exists(file.FilePath))
-            System.IO.File.Delete(file.FilePath);
-
-        _context.Files.Remove(file);
-        await _context.SaveChangesAsync();
-
-        return Ok(new { Message = "File deleted successfully!" });
+        }
     }
 
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            await _fileService.DeleteFileAsync(id);
+            return Ok();
+        }
+        catch (FileNotFoundException)
+        {
+            return NotFound();
+        }
+    }
 }
