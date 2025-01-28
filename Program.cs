@@ -88,6 +88,10 @@ app.UseAuthentication(); // Add authentication middleware
 app.UseAuthorization();  // Add authorization middleware
 
 app.MapControllerRoute(
+    name: "file",
+    pattern: "{controller=File}/{action=Index}");
+
+app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Auth}/{action=Login}");
 

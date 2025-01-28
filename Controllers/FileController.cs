@@ -1,17 +1,21 @@
-﻿// Controllers/FileController.cs
-
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using ProjetDotNet.Data;
 using ProjetDotNet.Service;
 
+namespace ProjetDotNet.Controllers;
+
 [ApiController]
-[Route("api/[controller]")]
-public class FileController : ControllerBase
+[Route("[controller]")]
+public class FileController : Controller
 {
     private readonly IFileService _fileService;
     private readonly IPdfParserService _pdfParserService;
+    private readonly ApplicationDbContext _context;
 
-    public FileController(IFileService fileService, IPdfParserService pdfParserService)
+    public FileController(ApplicationDbContext context, IFileService fileService, IPdfParserService pdfParserService)
     {
+        _context = context;
         _fileService = fileService;
         _pdfParserService = pdfParserService;
     }
@@ -55,18 +59,17 @@ public class FileController : ControllerBase
             return NotFound();
         }
     }
-
-    [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(int id)
+    
+    [HttpGet("index")]
+    public async Task<IActionResult> Index()
     {
-        try
-        {
-            await _fileService.DeleteFileAsync(id);
-            return Ok();
-        }
-        catch (FileNotFoundException)
-        {
-            return NotFound();
-        }
+        var files = await _context.Files.ToListAsync();
+        return View(files);
+    }
+
+    [HttpGet("upload")]
+    public IActionResult Upload()
+    {
+        return View();
     }
 }

@@ -1,0 +1,30 @@
+@model IEnumerable<ProjetDotNet.Models.FileModel>
+
+<h1>Uploaded Files</h1>
+
+<table>
+    <thead>
+    <tr>
+        <th>File ID</th>
+        <th>File Name</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var file in Model)
+    {
+        <tr>
+            <td>@file.Id</td>
+            <td>@file.FileName</td>
+            <td>
+                <a asp-controller="File" asp-action="Download" asp-route-id="@file.Id">Download</a> |
+                <a asp-controller="File" asp-action="ParsePdf" asp-route-id="@file.Id">Parse</a> |
+                <form asp-controller="File" asp-action="Delete" asp-route-id="@file.Id" method="post" style="display:inline;">
+                    <button type="submit">Delete</button>
+                </form>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
+<a asp-controller="File" asp-action="Upload">Upload New File</a>
