@@ -58,6 +58,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IPdfParserService, PdfParserService>();
+builder.Services.AddScoped<IFileCollectionService, FileCollectionService>();
 
 // Add controllers with views
 builder.Services.AddControllersWithViews();
