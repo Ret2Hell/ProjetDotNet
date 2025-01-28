@@ -29,6 +29,15 @@ ViewData["Title"] = "Login Basic - Pages";
                     <h4 class="mb-1">Welcome to UniCloud! 👋</h4>
                     <p class="mb-6">Sign in to access and share study materials with your peers.</p>
 
+
+                    @if (!string.IsNullOrEmpty(ViewBag.Message))
+                    {
+                        <div class="alert alert-success" role="alert">
+                            @ViewBag.Message
+                        </div>
+                    }
+                    
+                    
                     <!-- Form -->
                     <form id="formAuthentication" class="mb-6" asp-action="Login" asp-controller="Auth" method="post">
                         @Html.AntiForgeryToken()
