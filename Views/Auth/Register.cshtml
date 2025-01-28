@@ -4,7 +4,12 @@ ViewData["Title"] = "Register Basic - Pages";
 }
 
 @section PageStyles {
-<link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
+  <link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
+  <link rel="stylesheet" href="~/css/loader.css" />
+}
+
+@section PageScripts {
+  <script src="~/js/loader.js"></script>
 }
 
 @* ************** Content ************** *@
@@ -20,16 +25,17 @@ ViewData["Title"] = "Register Basic - Pages";
           <div class="app-brand justify-content-center mb-6">
             <a href="/" class="app-brand-link gap-2">
               <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span>
-              <span class="app-brand-text demo text-heading fw-bold">@TempData.Peek("appName")</span>
+              <span class="app-brand-text demo text-heading fw-bold">UniCloud</span>
             </a>
           </div>
           <!-- /Logo -->
-          <h4 class="mb-1">Adventure starts here 🚀</h4>
-          <p class="mb-6">Make your app management easy and fun!</p>
+          <h4 class="mb-1">Join the community today 🚀</h4>
+          <p class="mb-6">Register to start sharing and exploring university resources effortlessly!</p>
 
           <form id="formAuthentication" class="mb-6" asp-action="Register" asp-controller="Auth" method="post">
             @* Anti-forgery token for security *@
             @Html.AntiForgeryToken()
+            @Html.ValidationSummary(false, "", new { @class = "text-danger mb-4" })
 
             <div class="mb-6">
               <label for="username" class="form-label">Username</label>
@@ -46,17 +52,8 @@ ViewData["Title"] = "Register Basic - Pages";
                 <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
               </div>
             </div>
-
-            <div class="my-8">
-              <div class="form-check mb-0 ms-2">
-                <input class="form-check-input" type="checkbox" id="terms-conditions" name="Terms">
-                <label class="form-check-label" for="terms-conditions">
-                  I agree to
-                  <a href="javascript:void(0);">privacy policy & terms</a>
-                </label>
-              </div>
-            </div>
-            <button type="submit" class="btn btn-primary d-grid w-100">
+            
+            <button type="submit" class="btn btn-primary d-grid w-100 h-px-44">
               Sign up
             </button>
           </form>

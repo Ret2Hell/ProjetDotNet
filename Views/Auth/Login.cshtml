@@ -4,7 +4,12 @@ ViewData["Title"] = "Login Basic - Pages";
 }
 
 @section PageStyles {
-<link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
+    <link rel="stylesheet" href="~/vendor/css/pages/page-auth.css">
+    <link rel="stylesheet" href="~/css/loader.css" />
+}
+
+@section PageScripts {
+    <script src="~/js/loader.js"></script>
 }
 
 <div class="container-xxl">
@@ -17,17 +22,18 @@ ViewData["Title"] = "Login Basic - Pages";
                     <div class="app-brand justify-content-center">
                         <a href="/" class="app-brand-link gap-2">
                             <span class="app-brand-logo demo">@await Html.PartialAsync("../_Partials/_Macros")</span>
-                            <span class="app-brand-text demo text-heading fw-bold">@TempData.Peek("appName")</span>
+                            <span class="app-brand-text demo text-heading fw-bold">UniCloud</span>
                         </a>
                     </div>
                     <!-- /Logo -->
-                    <h4 class="mb-1">Welcome to @TempData.Peek("appName")! 👋</h4>
-                    <p class="mb-6">Please sign-in to your account and start the adventure</p>
+                    <h4 class="mb-1">Welcome to UniCloud! 👋</h4>
+                    <p class="mb-6">Sign in to access and share study materials with your peers.</p>
 
                     <!-- Form -->
                     <form id="formAuthentication" class="mb-6" asp-action="Login" asp-controller="Auth" method="post">
                         @Html.AntiForgeryToken()
-
+                        @Html.ValidationSummary(false, "", new { @class = "text-danger mb-4" })
+                        
                         <div class="mb-6">
                             <label for="email" class="form-label">Email</label>
                             <input type="email" class="form-control" id="email" name="Email" placeholder="Enter your email" value="@Model?.Email" required autofocus>
@@ -39,18 +45,8 @@ ViewData["Title"] = "Login Basic - Pages";
                                 <span class="input-group-text cursor-pointer"><i class="bx bx-hide"></i></span>
                             </div>
                         </div>
-                        <div class="mb-8">
-                            <div class="d-flex justify-content-between mt-8">
-                                <div class="form-check mb-0 ms-2">
-                                    <input class="form-check-input" type="checkbox" id="remember-me" name="RememberMe">
-                                    <label class="form-check-label" for="remember-me">
-                                        Remember Me
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
                         <div class="mb-6">
-                            <button class="btn btn-primary d-grid w-100" type="submit">Login</button>
+                            <button class="btn btn-primary d-grid w-100 h-px-44" type="submit">Login</button>
                         </div>
                     </form>
                     <!-- /Form -->
@@ -67,3 +63,7 @@ ViewData["Title"] = "Login Basic - Pages";
         </div>
     </div>
 </div>
+
+<style>
+
+</style>
