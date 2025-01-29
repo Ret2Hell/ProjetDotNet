@@ -1,0 +1,21 @@
+@model ProjetDotNet.Models.FileCollectionModel
+
+@{
+    ViewData["Title"] = "Edit File Collection";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<form asp-action="Edit" method="post" class="mt-4">
+    <div class="mb-3">
+        <label for="Name" class="form-label">Name</label>
+        <input type="text" class="form-control" id="Name" name="Name" value="@Model.Name" required />
+    </div>
+    <div class="mb-3">
+        <label for="Description" class="form-label">Description</label>
+        <textarea class="form-control" id="Description" name="Description">@Model.Description</textarea>
+    </div>
+    <button type="submit" class="btn btn-warning">Save Changes</button>
+</form>
+
+<a href="@Url.Action("Details", new { id = Model.Id })" class="btn btn-secondary mt-3">Back to Details</a>

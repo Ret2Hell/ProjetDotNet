@@ -1,0 +1,14 @@
+@model ProjetDotNet.Models.FileCollectionModel
+
+@{
+    ViewData["Title"] = "Delete File Collection";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>Are you sure you want to delete the file collection <strong>@Model.Name</strong>?</p>
+
+<form asp-action="DeleteConfirmed" method="post">
+    <button type="submit" class="btn btn-danger">Yes, Delete</button>
+    <a href="@Url.Action("Index")" class="btn btn-secondary">Cancel</a>
+</form>

@@ -96,6 +96,10 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Auth}/{action=Login}");
 
+app.MapControllerRoute(
+    name: "fileCollection",
+    pattern: "{controller=FileCollection}/{action=Index}");
+
 app.MapRazorPages();
 
 app.Run();

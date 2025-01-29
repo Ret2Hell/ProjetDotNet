@@ -1,0 +1,35 @@
+@model IEnumerable<ProjetDotNet.Models.FileCollectionModel>
+
+@{
+    ViewData["Title"] = "File Collections";
+}
+
+<h1>@ViewData["Title"]</h1>
+
+<p>
+    <a href="@Url.Action("Create")" class="btn btn-success">Create New File Collection</a>
+</p>
+
+<table class="table table-bordered table-striped">
+    <thead class="table-dark">
+    <tr>
+        <th>Name</th>
+        <th>Description</th>
+        <th>Actions</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var collection in Model)
+    {
+        <tr>
+            <td>@collection.Name</td>
+            <td>@collection.Description</td>
+            <td>
+                <a href="@Url.Action("Details", new { id = collection.Id })" class="btn btn-info btn-sm">Details</a>
+                <a href="@Url.Action("Edit", new { id = collection.Id })" class="btn btn-warning btn-sm">Edit</a>
+                <a href="@Url.Action("Delete", new { id = collection.Id })" class="btn btn-danger btn-sm">Delete</a>
+            </td>
+        </tr>
+    }
+    </tbody>
+</table>
