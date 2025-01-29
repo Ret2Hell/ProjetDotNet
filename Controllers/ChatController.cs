@@ -15,13 +15,15 @@ namespace ProjetDotNet.Controllers
     {
         private readonly IFileService _fileService;
         private readonly IChatService _chatService;
-
+        private readonly IPdfParserService _pdfParserService;
         public ChatController(
             IFileService fileService,
-            IChatService chatService)
+            IChatService chatService,
+            IPdfParserService pdfParserService)
         {
             _fileService = fileService;
             _chatService = chatService;
+            _pdfParserService = pdfParserService;
         }
 
         public async Task Handle()
@@ -52,9 +54,9 @@ namespace ProjetDotNet.Controllers
         {
             var buffer = new byte[1024 * 4];
             var documentId = 0;
-            Document document = null;
+            FileModel fileModel = null;
             List<Dictionary<string, string>> chatHistory = new List<Dictionary<string, string>>();
-
+            String  content = null; 
             // Step 1: Receive document ID
             var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
             if (result.MessageType == WebSocketMessageType.Text)
@@ -62,12 +64,13 @@ namespace ProjetDotNet.Controllers
                 var documentIdStr = Encoding.UTF8.GetString(buffer, 0, result.Count);
                 if (int.TryParse(documentIdStr, out documentId))
                 {
-                    document = await _fileService.GetFileAsync(documentId);
+                    fileModel = await _fileService.GetFileAsync(documentId);
+                    content = await _pdfParserService.ParsePdfToText(fileModel.FilePath);
                 }
             }
 
             // Validate document exists
-            if (document == null)
+            if (fileModel == null)
             {
                 var errorMessage = "Invalid document ID. Please provide a valid document ID as the first message.";
                 var errorBytes = Encoding.UTF8.GetBytes(errorMessage);
@@ -76,13 +79,21 @@ namespace ProjetDotNet.Controllers
                 return;
             }
 
-            // Step 2: Prepare system prompt
             var systemPrompt = $@"You are a university document assistant. 
-                Help students with the document: {document.DocumentName} 
-                (Type: {document.ContentType}, Size: {document.DocumentSize} bytes). 
-                Focus on providing clear explanations and context about this document.";
-
+            Help students with the document:  {content}
+            Focus on providing clear explanations and context about this document.";
+            chatHistory.Add(new Dictionary<string, string>
+            {
+                { "role", "system" },
+                { "content", systemPrompt }
+            });
+            var welcomeMessage = "Welcome! Ask me anything about the document.";
             await SendMessage(webSocket, welcomeMessage);
+            chatHistory.Add(new Dictionary<string, string>
+            {
+                { "role", "assistant" },
+                { "content", welcomeMessage }
+            });
 
             // Chat loop
             while (webSocket.State == WebSocketState.Open)
@@ -107,7 +118,7 @@ namespace ProjetDotNet.Controllers
                     // Add assistant response to history
                     chatHistory.Add(new Dictionary<string, string>
                     {
-                        { "role", "user" },
+                        { "role", "assistant" },
                         { "content", userMessage }
                     });
 
