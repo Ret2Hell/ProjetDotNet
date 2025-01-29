@@ -70,13 +70,9 @@ namespace ProjetDotNet.Controllers
                 (Type: {document.ContentType}, Size: {document.DocumentSize} bytes). 
                 Focus on providing clear explanations and context about this document.";
 
-            // Step 3: Send welcome message
-            var welcomeMessage = $@"Welcome to the {document.DocumentName} assistant! 
-                Ask me anything about this document.";
-            var welcomeBytes = Encoding.UTF8.GetBytes(welcomeMessage);
-            await webSocket.SendAsync(new ArraySegment<byte>(welcomeBytes), WebSocketMessageType.Text, true, CancellationToken.None);
+            await SendMessage(webSocket, welcomeMessage);
 
-            // Step 4: Handle chat loop
+            // Chat loop
             while (webSocket.State == WebSocketState.Open)
             {
                 result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -84,9 +80,21 @@ namespace ProjetDotNet.Controllers
                 if (result.MessageType == WebSocketMessageType.Text)
                 {
                     var userMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                    var response = await _chatService.GetResponseAsync(systemPrompt, userMessage);
-                    var responseBytes = Encoding.UTF8.GetBytes(response);
-                    await webSocket.SendAsync(new ArraySegment<byte>(responseBytes), WebSocketMessageType.Text, true, CancellationToken.None);
+
+                    // Add user message to history
+                    chatHistory.Add(
+                        new Dictionary<string, string> { "role", "user" , "content", userMessage }
+                    );
+
+                    // Get response from Groq
+                    var response = await _chatService.GetResponseAsync(chatHistory);
+
+                    // Add assistant response to history
+                    chatHistory.Add(
+                        new Dictionary<string, string>{ "role", "assistant" , "content", response }
+                    );
+
+                    await SendMessage(webSocket, response);
                 }
                 else if (result.MessageType == WebSocketMessageType.Close)
                 {
