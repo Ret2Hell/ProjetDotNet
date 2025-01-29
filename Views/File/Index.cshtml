@@ -1,30 +1,113 @@
-@model IEnumerable<ProjetDotNet.Models.FileModel>
+@model List<ProjetDotNet.Models.FileModel>
+@{
+    ViewData["Title"] = "File Management";
+}
 
-<h1>Uploaded Files</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+</head>
+<body class="bg-light">
+<div class="container py-5">
+    <h2 class="text-center mb-4">My Files</h2>
 
-<table>
-    <thead>
-    <tr>
-        <th>File ID</th>
-        <th>File Name</th>
-        <th>Actions</th>
-    </tr>
-    </thead>
-    <tbody>
-    @foreach (var file in Model)
-    {
-        <tr>
-            <td>@file.Id</td>
-            <td>@file.FileName</td>
-            <td>
-                <a asp-controller="File" asp-action="Download" asp-route-id="@file.Id">Download</a> |
-                <a asp-controller="File" asp-action="ParsePdf" asp-route-id="@file.Id">Parse</a> |
-                <form asp-controller="File" asp-action="Delete" asp-route-id="@file.Id" method="post" style="display:inline;">
-                    <button type="submit">Delete</button>
-                </form>
-            </td>
-        </tr>
+    <!-- Upload Form -->
+    <div class="card mb-4 shadow-sm">
+        <div class="card-body">
+            <h5 class="card-title">Upload a File</h5>
+            <form id="uploadForm" enctype="multipart/form-data">
+                <div class="mb-3">
+                    <input type="file" id="fileInput" class="form-control">
+                </div>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- File List -->
+    <div class="row">
+        @foreach (var file in Model)
+        {
+            <div class="col-md-4">
+                <div class="card mb-4 shadow-sm">
+                    <div class="card-body">
+                        <h5 class="card-title">@file.FileName</h5>
+                        <p class="text-muted">Uploaded: @file.UploadedOn.ToShortDateString()</p>
+
+                        <div class="d-flex justify-content-between">
+                            <!-- Download Button -->
+                            <a href="@Url.Action("Download", "File", new { id = file.Id })" class="btn btn-success btn-sm">
+                                Download
+                            </a>
+
+                            <!-- View Parsed Content -->
+                            <a href="@Url.Action("ParsePdf", "File", new { id = file.Id })" class="btn btn-info btn-sm">
+                                View Content
+                            </a>
+
+                            <!-- Delete Button -->
+                            <button class="btn btn-danger btn-sm" onclick="deleteFile(@file.Id, this)">Delete</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    $(document).ready(function () {
+        // Upload File
+        $("#uploadForm").submit(function (e) {
+            e.preventDefault();
+            var fileInput = $("#fileInput")[0].files[0];
+
+            if (!fileInput) {
+                alert("Please select a file.");
+                return;
+            }
+
+            var formData = new FormData();
+            formData.append("file", fileInput);
+
+            $.ajax({
+                url: "/File/Upload",
+                type: "POST",
+                data: formData,
+                processData: false,
+                contentType: false,
+                success: function () {
+                    alert("File uploaded successfully!");
+                    location.reload();
+                },
+                error: function () {
+                    alert("Error uploading file.");
+                }
+            });
+        });
+    });
+
+    // Delete File
+    function deleteFile(fileId, button) {
+        if (!confirm("Are you sure you want to delete this file?")) return;
+
+        $.ajax({
+            url: `/File/${fileId}`,
+            type: "DELETE",
+            success: function () {
+                alert("File deleted successfully!");
+                $(button).closest(".col-md-4").remove();
+            },
+            error: function () {
+                alert("Error deleting file.");
+            }
+        });
     }
-    </tbody>
-</table>
-<a asp-controller="File" asp-action="Upload">Upload New File</a>
+</script>
+</body>
+</html>

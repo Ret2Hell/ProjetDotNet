@@ -1,151 +1,85 @@
-﻿<!DOCTYPE html>
-<html>
-<head>
-    <title>Upload PDF File</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        .upload-zone {
-            border: 2px dashed #ccc;
-            border-radius: 4px;
-            padding: 20px;
-            text-align: center;
-            background: #f8f9fa;
-            transition: border 0.3s ease;
-        }
+﻿@model IEnumerable<ProjetDotNet.Models.FileModel>
 
-        .upload-zone.dragover {
-            border-color: #0d6efd;
-            background: #e9ecef;
-        }
+@{
+    ViewData["Title"] = "Files";
+}
 
-        #uploadProgress {
-            transition: width 0.3s ease;
-        }
-    </style>
-</head>
-<body>
-<div class="container mt-4">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card">
-                <div class="card-header">
-                    <h2 class="mb-0">Upload PDF File</h2>
-                </div>
-                <div class="card-body">
-                    <form id="uploadForm">
-                        <div class="upload-zone mb-3" id="dropZone">
-                            <div class="mb-3">
-                                <i class="bi bi-cloud-upload" style="font-size: 2rem;"></i>
-                                <p class="mb-2">Drag and drop your PDF here or click to browse</p>
-                                <input type="file" class="form-control" id="file" accept=".pdf" required>
+<div class="container my-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>My Files</h2>
+        <a href="@Url.Action("Upload", "File")" class="btn btn-primary">
+            <i class="fas fa-upload"></i> Upload New File
+        </a>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="text-center py-5">
+            <i class="fas fa-folder-open fa-4x text-muted"></i>
+            <p class="mt-3">No files uploaded yet. Start by uploading your first file!</p>
+        </div>
+    }
+    else
+    {
+        <div class="row g-4">
+            @foreach (var file in Model)
+            {
+                <div class="col-md-4 col-lg-3">
+                    <div class="card h-100 shadow-sm">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <i class="fas fa-file-pdf fa-2x text-danger me-2"></i>
+                                <h6 class="card-title mb-0 text-truncate">@file.FileName</h6>
+                            </div>
+                            <p class="card-text small text-muted">
+                                Uploaded: @file.UploadedOn.ToString("MMM dd, yyyy")
+                            </p>
+                        </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <div class="btn-group w-100" role="group">
+                                <a href="@Url.Action("Download", "File", new { id = file.Id })"
+                                   class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-download"></i> Download
+                                </a>
+                                <a href="@Url.Action("ParsePdf", "File", new { id = file.Id })"
+                                   class="btn btn-outline-success btn-sm">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                                <button onclick="deleteFile(@file.Id)"
+                                        class="btn btn-outline-danger btn-sm">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
                             </div>
                         </div>
-
-                        <div class="progress mb-3 d-none" id="progressContainer">
-                            <div id="uploadProgress" class="progress-bar" role="progressbar"
-                                 style="width: 0%"></div>
-                        </div>
-
-                        <div class="d-flex justify-content-between">
-                            <button type="submit" class="btn btn-primary" id="uploadButton">
-                                <i class="bi bi-upload"></i> Upload
-                            </button>
-                            <a href="@Url.Action("Index")" class="btn btn-secondary">
-                                <i class="bi bi-arrow-left"></i> Back to List
-                            </a>
-                        </div>
-                    </form>
+                    </div>
                 </div>
-            </div>
+            }
         </div>
-    </div>
+    }
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-<script>
-    const dropZone = document.getElementById('dropZone');
-    const fileInput = document.getElementById('file');
-    const uploadForm = document.getElementById('uploadForm');
-    const uploadButton = document.getElementById('uploadButton');
-    const progressContainer = document.getElementById('progressContainer');
-    const uploadProgress = document.getElementById('uploadProgress');
-
-    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, preventDefaults, false);
-        document.body.addEventListener(eventName, preventDefaults, false);
-    });
-
-    function preventDefaults(e) {
-        e.preventDefault();
-        e.stopPropagation();
-    }
-
-    ['dragenter', 'dragover'].forEach(eventName => {
-        dropZone.addEventListener(eventName, highlight, false);
-    });
-
-    ['dragleave', 'drop'].forEach(eventName => {
-        dropZone.addEventListener(eventName, unhighlight, false);
-    });
-
-    function highlight(e) {
-        dropZone.classList.add('dragover');
-    }
-
-    function unhighlight(e) {
-        dropZone.classList.remove('dragover');
-    }
-
-    dropZone.addEventListener('drop', handleDrop, false);
-
-    function handleDrop(e) {
-        const dt = e.dataTransfer;
-        const files = dt.files;
-        fileInput.files = files;
-    }
-
-    uploadForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-
-        const file = fileInput.files[0];
-        if (!file) {
-            alert('Please select a file');
-            return;
-        }
-
-        if (!file.type.includes('pdf')) {
-            alert('Please select a PDF file');
-            return;
-        }
-
-        const formData = new FormData();
-        formData.append('file', file);
-
-        uploadButton.disabled = true;
-        progressContainer.classList.remove('d-none');
-
-        try {
-            const response = await fetch('/api/file/upload', {
-                method: 'POST',
-                body: formData
-            });
-
-            if (response.ok) {
-                alert('File uploaded successfully');
-                window.location.href = '@Url.Action("Index")';
-            } else {
-                const errorData = await response.text();
-                throw new Error(errorData || 'Upload failed');
+@section Scripts {
+    <script>
+        function deleteFile(id) {
+            if (confirm('Are you sure you want to delete this file?')) {
+                fetch(`/File/${id}`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                    .then(response => {
+                        if (response.ok) {
+                            window.location.reload();
+                        } else {
+                            alert('Error deleting file');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        alert('Error deleting file');
+                    });
             }
-        } catch (error) {
-            alert('Error uploading file: ' + error.message);
-            console.error('Error:', error);
-        } finally {
-            uploadButton.disabled = false;
-            progressContainer.classList.add('d-none');
-            uploadProgress.style.width = '0%';
         }
-    });
-</script>
-</body>
-</html>
+    </script>
+}

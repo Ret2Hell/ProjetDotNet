@@ -60,6 +60,20 @@ public class FileController : Controller
         }
     }
     
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> Delete(int id)
+    {
+        try
+        {
+            await _fileService.DeleteFileAsync(id);
+            return Ok();
+        }
+        catch (FileNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+    
     [HttpGet("index")]
     public async Task<IActionResult> Index()
     {
