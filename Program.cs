@@ -59,6 +59,11 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IPdfParserService, PdfParserService>();
 builder.Services.AddScoped<IFileCollectionService, FileCollectionService>();
+// Add HTTP client for Groq
+builder.Services.AddHttpClient<IChatService, GroqChatService>();
+
+// Register services
+builder.Services.AddScoped<IChatService, GroqChatService>();
 
 // Add controllers with views
 builder.Services.AddControllersWithViews();
