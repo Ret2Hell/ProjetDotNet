@@ -37,11 +37,23 @@ namespace ProjetDotNet.Controllers
             }
         }
 
+        private async Task SendMessage(WebSocket webSocket, string message)
+        {
+            var messageBytes = Encoding.UTF8.GetBytes(message);
+            await webSocket.SendAsync(
+                new ArraySegment<byte>(messageBytes, 0, messageBytes.Length),
+                WebSocketMessageType.Text,
+                true,
+                CancellationToken.None
+            );
+        }
+
         private async Task HandleWebSocketConnection(WebSocket webSocket)
         {
             var buffer = new byte[1024 * 4];
             var documentId = 0;
             Document document = null;
+            List<Dictionary<string, string>> chatHistory = new List<Dictionary<string, string>>();
 
             // Step 1: Receive document ID
             var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
@@ -82,17 +94,22 @@ namespace ProjetDotNet.Controllers
                     var userMessage = Encoding.UTF8.GetString(buffer, 0, result.Count);
 
                     // Add user message to history
-                    chatHistory.Add(
-                        new Dictionary<string, string> { "role", "user" , "content", userMessage }
-                    );
+                    chatHistory.Add(new Dictionary<string, string>
+                    {
+                        { "role", "user" },
+                        { "content", userMessage }
+                    });
+
 
                     // Get response from Groq
                     var response = await _chatService.GetResponseAsync(chatHistory);
 
                     // Add assistant response to history
-                    chatHistory.Add(
-                        new Dictionary<string, string>{ "role", "assistant" , "content", response }
-                    );
+                    chatHistory.Add(new Dictionary<string, string>
+                    {
+                        { "role", "user" },
+                        { "content", userMessage }
+                    });
 
                     await SendMessage(webSocket, response);
                 }
