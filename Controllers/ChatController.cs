@@ -13,14 +13,14 @@ namespace ProjetDotNet.Controllers
     [Route("/ws/chat")]
     public class ChatController : ControllerBase
     {
-        private readonly IFileCollectionService _fileCollectionService;
+        private readonly IFileService _fileService;
         private readonly IChatService _chatService;
 
         public ChatController(
-            IFileCollectionService fileCollectionService,
+            IFileService fileService,
             IChatService chatService)
         {
-            _fileCollectionService = fileCollectionService;
+            _fileService = fileService;
             _chatService = chatService;
         }
 
@@ -62,7 +62,7 @@ namespace ProjetDotNet.Controllers
                 var documentIdStr = Encoding.UTF8.GetString(buffer, 0, result.Count);
                 if (int.TryParse(documentIdStr, out documentId))
                 {
-                    document = await _fileCollectionService.GetDocumentByIdAsync(documentId);
+                    document = await _fileService.GetFileAsync(documentId);
                 }
             }
 
