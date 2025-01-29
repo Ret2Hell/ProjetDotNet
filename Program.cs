@@ -58,6 +58,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddScoped<IFileService, FileService>();
 builder.Services.AddScoped<IPdfParserService, PdfParserService>();
+builder.Services.AddScoped<IFileCollectionService, FileCollectionService>();
 
 // Add controllers with views
 builder.Services.AddControllersWithViews();
@@ -94,6 +95,10 @@ app.MapControllerRoute(
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Auth}/{action=Login}");
+
+app.MapControllerRoute(
+    name: "fileCollection",
+    pattern: "{controller=FileCollection}/{action=Index}");
 
 app.MapRazorPages();
 
