@@ -39,7 +39,12 @@ public class AuthController : Controller
             ModelState.AddModelError(string.Empty, "Invalid credentials");
             return View(model);
         }
-
+        
+        if (token.Equals("Email not confirmed"))
+        {
+            ModelState.AddModelError(string.Empty, "Email not confirmed");
+            return View(model);
+        }
         // Store token in a cookie, session, or any other preferred method
         HttpContext.Response.Cookies.Append("JwtToken", token);
         return RedirectToAction("Index", "Home"); // Redirect to home after successful login
@@ -71,7 +76,7 @@ public class AuthController : Controller
             return View(model);
         }
         // Registration successful, redirect to login
-        return RedirectToAction("Login");
+        return RedirectToAction("Login", "Auth", new { message = "Registration successful. Please confirm your email." });
     }
     
     [HttpGet]

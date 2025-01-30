@@ -12,6 +12,9 @@ using System.Security.Claims;
 using System.Text;
 using ProjetDotNet.Models;
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Configuration;
 
 
 public class AuthService : IAuthService
@@ -56,7 +59,16 @@ public class AuthService : IAuthService
         }
 
         Console.WriteLine($"[INFO] Password validated for Email: {model.Email}. Generating JWT token.");
-
+        
+        var isConfirmed = await _userManager.IsEmailConfirmedAsync(user);
+        if (!isConfirmed)
+        {
+            Console.WriteLine($"[WARNING] Login failed: Email not confirmed for Email: {model.Email}");
+            return "Email not confirmed";
+        }
+        
+        Console.WriteLine($"[INFO] Email confirmed for Email: {model.Email}. Generating JWT token.");
+        
         // Prepare claims for the JWT token
         var authClaims = new List<Claim>
         {
