@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 public interface IFileCollectionService
 {
-    Task<List<FileCollectionModel>> GetAllFileCollectionsAsync(int parentId);
+    Task<object> GetAllFileCollectionsAsync(int parentId);
     Task<FileCollectionModel> GetFileCollectionByIdAsync(int id);
     Task<FileCollectionModel> CreateFileCollectionAsync(FileCollectionModel fileCollection);
     Task UpdateFileCollectionAsync(int id, FileCollectionModel fileCollection);
@@ -29,21 +29,65 @@ public class FileCollectionService : IFileCollectionService
         _context = context;
     }
     
-    public async Task<List<FileCollectionModel>> GetAllFileCollectionsAsync(int parentId = -1)
+    public async Task<object> GetAllFileCollectionsAsync(int parentId = -1)
     {
         if (parentId == -1)
         {
-            return await _context.FileCollections
+            
+            var collections = await _context.FileCollections
                 .Where(fc => fc.ParentCollection == null)
-                .Select(fc => new FileCollectionModel { Id = fc.Id, Name = fc.Name, Files = fc.Files, SubCollections = fc.SubCollections })
+                .Include(fc => fc.Files)
+                .Include(fc => fc.SubCollections)
+                .Select(fc => new 
+                { 
+                    Id = fc.Id, 
+                    Name = fc.Name, 
+                    SubCollections = fc.SubCollections.Select(sub => new { sub.Id, sub.Name }),
+                    Files = fc.Files.Select(f => new { f.Id, f.FileName }) 
+                })
                 .ToListAsync();
+
+            return collections;
         }
 
-        return await _context.FileCollections
+        
+        var parentCollection = await _context.FileCollections
+            .Where(fc => fc.Id == parentId)
+            .Include(fc => fc.Files)
+            .FirstOrDefaultAsync();
+
+        if (parentCollection == null)
+        {
+            return null; 
+        }
+
+        
+        var subCollections = await _context.FileCollections
             .Where(fc => fc.ParentCollection.Id == parentId)
-            .Select(fc => new FileCollectionModel { Id = fc.Id, Name = fc.Name, Files = fc.Files, SubCollections = fc.SubCollections })
+            .Include(fc => fc.Files)
+            .Include(fc => fc.SubCollections)
+            .Select(fc => new 
+            { 
+                Id = fc.Id, 
+                Name = fc.Name, 
+                SubCollections = fc.SubCollections.Select(sub => new { sub.Id, sub.Name }),
+                Files = fc.Files.Select(f => new { f.Id, f.FileName }) 
+            })
             .ToListAsync();
+
+        
+        return new 
+        {
+            ParentCollection = new 
+            {
+                Id = parentCollection.Id,
+                Name = parentCollection.Name,
+                Files = parentCollection.Files.Select(f => new { f.Id, f.FileName })
+            },
+            SubCollections = subCollections
+        };
     }
+
 
 
 
