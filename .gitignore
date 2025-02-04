@@ -12,4 +12,5 @@ app.db
 app.db-shm
 app.db-wal
 appsettings.Development.json
-appsettings.json
+appsettings.jsonapp.db*
+appsettings*.json
