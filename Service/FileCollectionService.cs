@@ -127,13 +127,24 @@ public class FileCollectionService : IFileCollectionService
 
     public async Task DeleteFileCollectionAsync(int id)
     {
-        var fileCollection = await _context.FileCollections.FindAsync(id);
+        var fileCollection = await _context.FileCollections
+            .Include(fc => fc.Files)
+            .Include(fc => fc.SubCollections)
+            .FirstOrDefaultAsync(fc => fc.Id == id);
+
         if (fileCollection != null)
         {
+            foreach (var subCollection in fileCollection.SubCollections.ToList())
+            {
+                await DeleteFileCollectionAsync(subCollection.Id);
+            }
+            _context.Files.RemoveRange(fileCollection.Files);
             _context.FileCollections.Remove(fileCollection);
+
             await _context.SaveChangesAsync();
         }
     }
+
 
     public async Task<bool> FileCollectionExistsAsync(int id)
     {
