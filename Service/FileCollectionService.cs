@@ -103,6 +103,12 @@ public class FileCollectionService : IFileCollectionService
     {
         _context.FileCollections.Add(fileCollection);
         await _context.SaveChangesAsync();
+        if (fileCollection.ParentCollectionId.HasValue)
+        {
+            fileCollection.ParentCollection = await _context.FileCollections
+                .FindAsync(fileCollection.ParentCollectionId);
+        }
+
         return fileCollection;
     }
 
