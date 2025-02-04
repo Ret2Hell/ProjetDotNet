@@ -56,7 +56,7 @@ namespace ProjetDotNet.Controllers
 
             var createdFileCollection = await _fileCollectionService.CreateFileCollectionAsync(fileCollection);
 
-            return Ok();
+            return Ok(createdFileCollection);
         }
 
 
