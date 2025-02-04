@@ -55,8 +55,8 @@ namespace ProjetDotNet.Controllers
             }
 
             var createdFileCollection = await _fileCollectionService.CreateFileCollectionAsync(fileCollection);
-    
-            return CreatedAtAction(nameof(Get), new { id = createdFileCollection.Id }, createdFileCollection);
+
+            return Ok(createdFileCollection);
         }
 
 

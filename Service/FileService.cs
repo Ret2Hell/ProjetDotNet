@@ -1,9 +1,10 @@
 using ProjetDotNet.Data;
 using ProjetDotNet.Models;
+using ProjetDotNet.Service;
 
 public interface IFileService
 {
-    Task<FileModel> UploadFileAsync(IFormFile file);
+    Task<FileModel> UploadFileAsync(IFormFile file, int collectionId);
     Task<FileModel> GetFileAsync(int id);
     Task<byte[]> DownloadFileAsync(int id);
     Task DeleteFileAsync(int id);
@@ -13,15 +14,17 @@ public class FileService : IFileService
 {
     private readonly ApplicationDbContext _context;
     private readonly string _uploadDirectory;
+    private readonly IFileCollectionService _fileCollectionService;
 
-    public FileService(ApplicationDbContext context, IWebHostEnvironment environment)
+    public FileService(ApplicationDbContext context, IWebHostEnvironment environment, IFileCollectionService fileCollectionService)
     {
         _context = context;
         _uploadDirectory = Path.Combine(environment.ContentRootPath, "Uploads");
         Directory.CreateDirectory(_uploadDirectory);
+        _fileCollectionService = fileCollectionService;
     }
 
-    public async Task<FileModel> UploadFileAsync(IFormFile file)
+    public async Task<FileModel> UploadFileAsync(IFormFile file, int collectionId)
     {
         if (file == null || file.Length == 0)
             throw new ArgumentException("Invalid file");
@@ -45,7 +48,7 @@ public class FileService : IFileService
 
         _context.Files.Add(fileModel);
         await _context.SaveChangesAsync();
-
+        await _fileCollectionService.AddFileToCollectionAsync(collectionId, fileModel.Id);
         return fileModel;
     }
 

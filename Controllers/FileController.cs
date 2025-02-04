@@ -20,14 +20,14 @@ public class FileController : ControllerBase
         _pdfParserService = pdfParserService;
     }
 
-    // POST: api/file/upload
-    [HttpPost("upload")]
-    public async Task<IActionResult> Upload(IFormFile file)
+    // POST: api/file/upload/{collectionID}
+    [HttpPost("upload/{collectionID}")]
+    public async Task<IActionResult> Upload(IFormFile file, int collectionID)
     {
         if (file == null || file.Length == 0)
             return BadRequest("No file uploaded");
 
-        var result = await _fileService.UploadFileAsync(file);
+        var result = await _fileService.UploadFileAsync(file, collectionID);
         return Ok(result);
     }
 
