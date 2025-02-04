@@ -8,5 +8,8 @@ app.db
 /Uploads/*
 .vs/
 
-app.db*
-appsettings.*
+app.db
+app.db-shm
+app.db-wal
+appsettings.Development.json
+appsettings.json
