@@ -36,6 +36,8 @@ namespace ProjetDotNet.Controllers
             else
             {
                 HttpContext.Response.StatusCode = StatusCodes.Status400BadRequest;
+                // Log error
+                Console.WriteLine("WebSocket request not accepted.");
             }
         }
 
@@ -59,15 +61,22 @@ namespace ProjetDotNet.Controllers
             String  content = null; 
             // Step 1: Receive document ID
             var result = await webSocket.ReceiveAsync(new ArraySegment<byte>(buffer), CancellationToken.None);
-            if (result.MessageType == WebSocketMessageType.Text)
+            var documentIdStr = Encoding.UTF8.GetString(buffer, 0, result.Count);
+            Console.WriteLine($"Received document ID: {documentIdStr}");
+            if (int.TryParse(documentIdStr, out documentId))
             {
-                var documentIdStr = Encoding.UTF8.GetString(buffer, 0, result.Count);
-                if (int.TryParse(documentIdStr, out documentId))
+                Console.WriteLine($"Parsed document ID: {documentId}");
+                fileModel = await _fileService.GetFileAsync(documentId);
+                if (fileModel == null)
                 {
-                    fileModel = await _fileService.GetFileAsync(documentId);
-                    content = await _pdfParserService.ParsePdfToText(fileModel.FilePath);
+                    Console.WriteLine("FileModel is null!");
                 }
             }
+            else
+            {
+                Console.WriteLine("Failed to parse document ID");
+            }
+
 
             // Validate document exists
             if (fileModel == null)
@@ -78,6 +87,7 @@ namespace ProjetDotNet.Controllers
                 await webSocket.CloseAsync(WebSocketCloseStatus.InvalidPayloadData, "Invalid document ID", CancellationToken.None);
                 return;
             }
+
 
             var systemPrompt = $@"You are a university document assistant. 
             Help students with the document:  {content}
