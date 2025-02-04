@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 public interface IFileCollectionService
 {
-    Task<List<FileCollectionModel>> GetAllFileCollectionsAsync();
+    Task<List<FileCollectionModel>> GetAllFileCollectionsAsync(int parentId);
     Task<FileCollectionModel> GetFileCollectionByIdAsync(int id);
     Task<FileCollectionModel> CreateFileCollectionAsync(FileCollectionModel fileCollection);
     Task UpdateFileCollectionAsync(int id, FileCollectionModel fileCollection);
@@ -29,13 +29,24 @@ public class FileCollectionService : IFileCollectionService
         _context = context;
     }
     
-    public async Task<List<FileCollectionModel>> GetAllFileCollectionsAsync()
+    public async Task<List<FileCollectionModel>> GetAllFileCollectionsAsync(int parentId = -1)
     {
+        if (parentId == -1)
+        {
+            return await _context.FileCollections
+                .Where(fc => fc.ParentCollection == null)
+                .Select(fc => new FileCollectionModel { Id = fc.Id, Name = fc.Name })
+                .ToListAsync();
+        }
+
         return await _context.FileCollections
-            .Include(fc => fc.SubCollections)
-            .Include(fc => fc.Files)
+            .Where(fc => fc.ParentCollection.Id == parentId)
+            .Select(fc => new FileCollectionModel { Id = fc.Id, Name = fc.Name })
             .ToListAsync();
     }
+
+
+
     public async Task<FileCollectionModel?> GetFileCollectionByIdAsync(int id)
     {
         return await _context.FileCollections  
