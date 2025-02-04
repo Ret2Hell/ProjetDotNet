@@ -62,19 +62,14 @@ namespace ProjetDotNet.Controllers
 
         // PUT: api/filecollection/{id}
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, FileCollectionModel fileCollection)
+        public async Task<IActionResult> Update(int id, String name)
         {
-            if (id != fileCollection.Id)
-            {
-                return BadRequest();
-            }
-
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            await _fileCollectionService.UpdateFileCollectionAsync(id, fileCollection);
+            await _fileCollectionService.UpdateFileCollectionAsync(id, name);
             return NoContent();
         }
 

@@ -13,7 +13,7 @@ public interface IFileCollectionService
     Task<object> GetAllFileCollectionsAsync(int parentId);
     Task<FileCollectionModel> GetFileCollectionByIdAsync(int id);
     Task<FileCollectionModel> CreateFileCollectionAsync(FileCollectionModel fileCollection);
-    Task UpdateFileCollectionAsync(int id, FileCollectionModel fileCollection);
+    Task UpdateFileCollectionAsync(int id, String name);
     Task DeleteFileCollectionAsync(int id);
     Task<bool> FileCollectionExistsAsync(int id);
     Task AddFileToCollectionAsync(int collectionId, int fileId);
@@ -112,15 +112,12 @@ public class FileCollectionService : IFileCollectionService
         return fileCollection;
     }
 
-    public async Task UpdateFileCollectionAsync(int id, FileCollectionModel fileCollection)
+    public async Task UpdateFileCollectionAsync(int id, String name)
     {
         var existingFileCollection = await _context.FileCollections.FindAsync(id);
         if (existingFileCollection != null)
         {
-            existingFileCollection.Name = fileCollection.Name;
-            existingFileCollection.Description = fileCollection.Description;
-            existingFileCollection.Files = fileCollection.Files;
-            existingFileCollection.SubCollections = fileCollection.SubCollections;
+            existingFileCollection.Name = name;
             await _context.SaveChangesAsync();
         }
     }

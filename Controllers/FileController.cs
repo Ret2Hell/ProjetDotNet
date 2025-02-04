@@ -85,4 +85,16 @@ public class FileController : ControllerBase
         var files = await _context.Files.ToListAsync();
         return Ok(files);
     }
+    
+    //PUT: api/file/{id}
+    [HttpPut("{id}")]
+    public async Task<IActionResult> Update(int id, String name)
+    {
+        if (!ModelState.IsValid)
+        {
+            return BadRequest(ModelState);
+        }
+        await _fileService.UpdateFileAsync(id, name);
+        return NoContent();
+    }
 }

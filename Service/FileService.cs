@@ -8,6 +8,7 @@ public interface IFileService
     Task<FileModel> GetFileAsync(int id);
     Task<byte[]> DownloadFileAsync(int id);
     Task DeleteFileAsync(int id);
+    Task UpdateFileAsync(int id, String name);
 }
 
 public class FileService : IFileService
@@ -74,6 +75,14 @@ public class FileService : IFileService
             File.Delete(file.FilePath);
 
         _context.Files.Remove(file);
+        await _context.SaveChangesAsync();
+    }
+
+    public async Task UpdateFileAsync(int id, String name)
+    {
+        var file = await GetFileAsync(id);
+        if (file == null) throw new FileNotFoundException();
+        file.FileName = name;
         await _context.SaveChangesAsync();
     }
 }
