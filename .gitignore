@@ -7,3 +7,6 @@ riderModule.iml
 app.db
 /Uploads/*
 .vs/
+
+app.db*
+appsettings.*
