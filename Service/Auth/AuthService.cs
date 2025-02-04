@@ -13,6 +13,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using System.Net;
 
 namespace ProjetDotNet.Service
 {
@@ -131,19 +132,15 @@ namespace ProjetDotNet.Service
 
                     // Generate email confirmation token.
                     var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-                    var actionContext = new ActionContext(
-                        _httpContextAccessor.HttpContext,
-                        _httpContextAccessor.HttpContext.GetRouteData(),
-                        new ActionDescriptor()
-                    );
-
+                    
+                    
+                    // Encode token properly
+                    var encodedToken = WebUtility.UrlEncode(token);
+                    
                     // Generate confirmation link.
-                    var urlHelper = _urlHelperFactory.GetUrlHelper(actionContext);
-                    var confirmationLink = urlHelper.Action(
-                        "ConfirmEmail",
-                        "Auth",
-                        new { userId = user.Id, token },
-                        protocol: _httpContextAccessor.HttpContext.Request.Scheme);
+                    var frontendBaseUrl = "http://localhost:3000"; // Your frontend base URL
+                    var confirmationLink = $"{frontendBaseUrl}/confirm-email?userId={user.Id}&token={encodedToken}";
+
 
                     // Send confirmation email.
                     await _emailSender.SendEmailAsync(user.Email, "Confirm your email",
