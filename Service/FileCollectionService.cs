@@ -35,13 +35,13 @@ public class FileCollectionService : IFileCollectionService
         {
             return await _context.FileCollections
                 .Where(fc => fc.ParentCollection == null)
-                .Select(fc => new FileCollectionModel { Id = fc.Id, Name = fc.Name })
+                .Select(fc => new FileCollectionModel { Id = fc.Id, Name = fc.Name, Files = fc.Files, SubCollections = fc.SubCollections })
                 .ToListAsync();
         }
 
         return await _context.FileCollections
             .Where(fc => fc.ParentCollection.Id == parentId)
-            .Select(fc => new FileCollectionModel { Id = fc.Id, Name = fc.Name })
+            .Select(fc => new FileCollectionModel { Id = fc.Id, Name = fc.Name, Files = fc.Files, SubCollections = fc.SubCollections })
             .ToListAsync();
     }
 
