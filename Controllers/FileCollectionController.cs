@@ -17,11 +17,19 @@ namespace ProjetDotNet.Controllers
             _fileCollectionService = fileCollectionService;
         }
 
-        // GET: api/filecollection
-        [HttpGet]
+        // GET: api/filecollection/parent/{parentid}
+        [HttpGet("parent/{parentid}")]
+        public async Task<ActionResult<IEnumerable<FileCollectionModel>>> GetAll(int? parentId)
+        {
+            var fileCollections = await _fileCollectionService.GetAllFileCollectionsAsync(parentId ?? -1);
+            return Ok(fileCollections);
+        }
+        
+        // GET: api/filecollection/parent
+        [HttpGet("parent")]
         public async Task<ActionResult<IEnumerable<FileCollectionModel>>> GetAll()
         {
-            var fileCollections = await _fileCollectionService.GetAllFileCollectionsAsync();
+            var fileCollections = await _fileCollectionService.GetAllFileCollectionsAsync(-1);
             return Ok(fileCollections);
         }
 
@@ -39,15 +47,18 @@ namespace ProjetDotNet.Controllers
 
         // POST: api/filecollection
         [HttpPost]
-        public async Task<ActionResult<FileCollectionModel>> Create(FileCollectionModel fileCollection)
+        public async Task<ActionResult<FileCollectionModel>> Create([FromBody] FileCollectionModel fileCollection)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
+
             var createdFileCollection = await _fileCollectionService.CreateFileCollectionAsync(fileCollection);
+    
             return CreatedAtAction(nameof(Get), new { id = createdFileCollection.Id }, createdFileCollection);
         }
+
 
         // PUT: api/filecollection/{id}
         [HttpPut("{id}")]
