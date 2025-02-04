@@ -27,8 +27,7 @@ public class FileController : ControllerBase
         if (file == null || file.Length == 0)
             return BadRequest("No file uploaded");
 
-        var result = await _fileService.UploadFileAsync(file);
-        //AddFileToCollectionAsync(collectionID, result.Id);
+        var result = await _fileService.UploadFileAsync(file, collectionID);
         return Ok(result);
     }
 

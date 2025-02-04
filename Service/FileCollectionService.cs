@@ -142,14 +142,23 @@ public class FileCollectionService : IFileCollectionService
     
     public async Task AddFileToCollectionAsync(int collectionId, int fileId)
     {
-        var fileCollection = await _context.FileCollections.FindAsync(collectionId);
+        var collection = await _context.FileCollections
+            .Include(fc => fc.Files)
+            .FirstOrDefaultAsync(fc => fc.Id == collectionId);
+
         var file = await _context.Files.FindAsync(fileId);
-        if (fileCollection != null && file != null)
-        {
-            fileCollection.Files.Add(file);
-            await _context.SaveChangesAsync();
-        }
+
+        // ✅ Add null checks
+        if (collection == null)
+            throw new NullReferenceException($"Collection with ID {collectionId} not found.");
+
+        if (file == null)
+            throw new NullReferenceException($"File with ID {fileId} not found.");
+
+        collection.Files.Add(file);
+        await _context.SaveChangesAsync();
     }
+
 
     public async Task RemoveFileFromCollectionAsync(int collectionId, int fileId)
     {
