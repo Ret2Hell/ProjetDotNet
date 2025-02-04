@@ -79,7 +79,8 @@ builder.Services.AddCors(options =>
 // You can integrate an email-sending service here, like SendGrid or SMTP.
 
 var app = builder.Build();
-
+// Enable middleware to serve generated Swagger as a JSON endpoint.
+app.UseWebSockets();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
