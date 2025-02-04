@@ -1,22 +1,27 @@
-﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+﻿# Use a smaller base image if possible
+FROM mcr.microsoft.com/dotnet/aspnet:9.0-alpine AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
 EXPOSE 8081
 
+# Build stage
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
+
+# Copy only the project file and restore dependencies
 COPY ["ProjetDotNet.csproj", "./"]
 RUN dotnet restore "ProjetDotNet.csproj"
+
+# Copy the rest of the files and build
 COPY . .
-WORKDIR "/src/"
-RUN dotnet build "ProjetDotNet.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN dotnet build "ProjetDotNet.csproj" -c Release -o /app/build
 
+# Publish stage
 FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "ProjetDotNet.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "ProjetDotNet.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
+# Final stage
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
