@@ -6,8 +6,8 @@ using ProjetDotNet.Service;
 namespace ProjetDotNet.Controllers;
 
 [ApiController]
-[Route("[controller]")]
-public class FileController : Controller
+[Route("api/[controller]")]
+public class FileController : ControllerBase
 {
     private readonly IFileService _fileService;
     private readonly IPdfParserService _pdfParserService;
@@ -20,6 +20,7 @@ public class FileController : Controller
         _pdfParserService = pdfParserService;
     }
 
+    // POST: api/file/upload
     [HttpPost("upload")]
     public async Task<IActionResult> Upload(IFormFile file)
     {
@@ -30,6 +31,7 @@ public class FileController : Controller
         return Ok(result);
     }
 
+    // GET: api/file/{id}
     [HttpGet("{id}")]
     public async Task<IActionResult> Download(int id)
     {
@@ -45,6 +47,7 @@ public class FileController : Controller
         }
     }
 
+    // GET: api/file/parse/{id}
     [HttpGet("parse/{id}")]
     public async Task<IActionResult> ParsePdf(int id)
     {
@@ -59,31 +62,27 @@ public class FileController : Controller
             return NotFound();
         }
     }
-    
+
+    // DELETE: api/file/{id}
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
         try
         {
             await _fileService.DeleteFileAsync(id);
-            return Ok();
+            return NoContent();
         }
         catch (FileNotFoundException)
         {
             return NotFound();
         }
     }
-    
-    [HttpGet("index")]
-    public async Task<IActionResult> Index()
+
+    // GET: api/file
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
     {
         var files = await _context.Files.ToListAsync();
-        return View(files);
-    }
-
-    [HttpGet("upload")]
-    public IActionResult Upload()
-    {
-        return View();
+        return Ok(files);
     }
 }

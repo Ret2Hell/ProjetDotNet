@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace ProjetDotNet.Controllers
 {
-    public class FileCollectionController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    public class FileCollectionController : ControllerBase
     {
         private readonly IFileCollectionService _fileCollectionService;
 
@@ -15,73 +17,58 @@ namespace ProjetDotNet.Controllers
             _fileCollectionService = fileCollectionService;
         }
 
-        // GET: /file-collection/
-        public async Task<IActionResult> Index()
+        // GET: api/filecollection
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<FileCollectionModel>>> GetAll()
         {
             var fileCollections = await _fileCollectionService.GetAllFileCollectionsAsync();
-            return View(fileCollections);  // Return view with fileCollections data
+            return Ok(fileCollections);
         }
 
-        // GET: /file-collection/{id}
-        public async Task<IActionResult> Details(int id)
+        // GET: api/filecollection/{id}
+        [HttpGet("{id}")]
+        public async Task<ActionResult<FileCollectionModel>> Get(int id)
         {
             var fileCollection = await _fileCollectionService.GetFileCollectionByIdAsync(id);
             if (fileCollection == null)
             {
                 return NotFound();
             }
-            return View(fileCollection);  // Return view with single fileCollection data
+            return Ok(fileCollection);
         }
 
-        // GET: /file-collection/create
-        public IActionResult Create()
-        {
-            return View();  // Return view for creating a file collection
-        }
-
-        // POST: /file-collection/create
+        // POST: api/filecollection
         [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(FileCollectionModel fileCollection)
+        public async Task<ActionResult<FileCollectionModel>> Create(FileCollectionModel fileCollection)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                var createdFileCollection = await _fileCollectionService.CreateFileCollectionAsync(fileCollection);
-                return RedirectToAction(nameof(Details), new { id = createdFileCollection.Id });  // Redirect to the created file collection details
+                return BadRequest(ModelState);
             }
-            return View(fileCollection);  // If the model state is invalid, return to the same view
+            var createdFileCollection = await _fileCollectionService.CreateFileCollectionAsync(fileCollection);
+            return CreatedAtAction(nameof(Get), new { id = createdFileCollection.Id }, createdFileCollection);
         }
 
-        // GET: /file-collection/edit/{id}
-        public async Task<IActionResult> Edit(int id)
-        {
-            var fileCollection = await _fileCollectionService.GetFileCollectionByIdAsync(id);
-            if (fileCollection == null)
-            {
-                return NotFound();
-            }
-            return View(fileCollection);  // Return view with file collection data to edit
-        }
-
-        // POST: /file-collection/edit/{id}
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, FileCollectionModel fileCollection)
+        // PUT: api/filecollection/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, FileCollectionModel fileCollection)
         {
             if (id != fileCollection.Id)
             {
                 return BadRequest();
             }
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                await _fileCollectionService.UpdateFileCollectionAsync(id, fileCollection);
-                return RedirectToAction(nameof(Details), new { id = fileCollection.Id });  // Redirect to updated file collection details
+                return BadRequest(ModelState);
             }
-            return View(fileCollection);  // Return to the same view if model state is invalid
+
+            await _fileCollectionService.UpdateFileCollectionAsync(id, fileCollection);
+            return NoContent();
         }
 
-        // GET: /file-collection/delete/{id}
+        // DELETE: api/filecollection/{id}
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             var fileCollection = await _fileCollectionService.GetFileCollectionByIdAsync(id);
@@ -89,38 +76,35 @@ namespace ProjetDotNet.Controllers
             {
                 return NotFound();
             }
-            return View(fileCollection);  // Return view for confirmation to delete
-        }
 
-        // POST: /file-collection/delete/{id}
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
-        {
             await _fileCollectionService.DeleteFileCollectionAsync(id);
-            return RedirectToAction(nameof(Index));  // Redirect to the index page after deletion
+            return NoContent();
         }
 
-        // GET: /file-collection/{collectionId}/files/{fileId}/add
+        // POST: api/filecollection/{collectionId}/files/{fileId}/add
+        [HttpPost("{collectionId}/files/{fileId}/add")]
         public async Task<IActionResult> AddFileToCollection(int collectionId, int fileId)
         {
             if (!await _fileCollectionService.FileCollectionExistsAsync(collectionId))
             {
                 return NotFound();
             }
+
             await _fileCollectionService.AddFileToCollectionAsync(collectionId, fileId);
-            return RedirectToAction(nameof(Details), new { id = collectionId });  // Redirect back to the file collection details
+            return NoContent();
         }
 
-        // GET: /file-collection/{collectionId}/files/{fileId}/remove
+        // DELETE: api/filecollection/{collectionId}/files/{fileId}/remove
+        [HttpDelete("{collectionId}/files/{fileId}/remove")]
         public async Task<IActionResult> RemoveFileFromCollection(int collectionId, int fileId)
         {
             if (!await _fileCollectionService.FileCollectionExistsAsync(collectionId))
             {
                 return NotFound();
             }
+
             await _fileCollectionService.RemoveFileFromCollectionAsync(collectionId, fileId);
-            return RedirectToAction(nameof(Details), new { id = collectionId });  // Redirect back to the file collection details
+            return NoContent();
         }
     }
 }
