@@ -1,8 +1,12 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using ProjetDotNet.Models;
 using ProjetDotNet.Service;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
-public class AuthController : Controller
+[Route("api/auth")]
+[ApiController]
+public class AuthController : ControllerBase
 {
     private readonly IAuthService _authService;
 
@@ -11,90 +15,53 @@ public class AuthController : Controller
         _authService = authService;
     }
 
-    // GET: /Auth/Login
-    [HttpGet]
-    public IActionResult Login(string message = "")
+    [HttpPost("login")]
+    public async Task<IActionResult> Login([FromBody] LoginViewModel model)
     {
-        if (!string.IsNullOrEmpty(message))
-        {
-            ViewBag.Message = message;
-        }
-        return View();
-    }
-
-
-    // POST: /Auth/Login
-    [HttpPost]
-    public async Task<IActionResult> Login(LoginViewModel model)
-    {
-        await Task.Delay(1000);
         if (!ModelState.IsValid)
         {
-            return View(model); // Return the view with validation errors
+            return BadRequest(ModelState);
         }
 
-        var token = await _authService.LoginAsync(model);
-        if (token == null)
+        var result = await _authService.LoginAsync(model);
+        if (!result.IsSuccess)
         {
-            ModelState.AddModelError(string.Empty, "Invalid credentials");
-            return View(model);
+            return Unauthorized(new { message = result.Message });
         }
         
-        if (token.Equals("Email not confirmed"))
-        {
-            ModelState.AddModelError(string.Empty, "Email not confirmed");
-            return View(model);
-        }
-        // Store token in a cookie, session, or any other preferred method
-        HttpContext.Response.Cookies.Append("JwtToken", token);
-        return RedirectToAction("Index", "Home"); // Redirect to home after successful login
+        return Ok(new { token = result.Token });
     }
 
-    // GET: /Auth/Register
-    [HttpGet]
-    public IActionResult Register()
-    {
-        return View(); // Render the Register view
-    }
-
-    // POST: /Auth/Register
-    [HttpPost]
-    public async Task<IActionResult> Register(RegisterViewModel model)
+    [HttpPost("register")]
+    public async Task<IActionResult> Register([FromBody] RegisterViewModel model)
     {
         if (!ModelState.IsValid)
         {
-            return View(model);
+            return BadRequest(ModelState);
         }
 
-        var (isSuccess, errors) = await _authService.RegisterAsync(model);
-        if (!isSuccess)
+        var result = await _authService.RegisterAsync(model);
+        if (!result.IsSuccess)
         {
-            foreach (var error in errors)
-            {
-                ModelState.AddModelError(string.Empty, error);
-            }
-            return View(model);
+            return BadRequest(new { errors = result.Errors });
         }
-        // Registration successful, redirect to login
-        return RedirectToAction("Login", "Auth", new { message = "Registration successful. Please confirm your email." });
+
+        return Ok(new { message = "Registration successful. Please confirm your email." });
     }
-    
-    [HttpGet]
-    public async Task<IActionResult> ConfirmEmail(string userId, string token)
+
+    [HttpGet("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail([FromQuery] string userId, [FromQuery] string token)
     {
         if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token))
         {
-            return View("Error");
+            return BadRequest(new { message = "Invalid request." });
         }
 
-        var isSuccess = await _authService.ConfirmEmailAsync(userId, token);
-        if (!isSuccess)
+        var result = await _authService.ConfirmEmailAsync(userId, token);
+        if (!result.IsSuccess)
         {
-            return View("Error");
+            return BadRequest(new { message = "Email confirmation failed." });
         }
-        ViewBag.Message = "Email successfully confirmed.";
-        return RedirectToAction("Login", "Auth", new { message = "Email successfully confirmed." });
+        return Ok(new { message = "Email successfully confirmed." });
     }
-
-
 }

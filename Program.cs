@@ -62,6 +62,15 @@ builder.Services.AddScoped<IFileCollectionService, FileCollectionService>();
 
 // Add controllers with views
 builder.Services.AddControllersWithViews();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowNextJs", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 
 // Configure email sender service (optional)
@@ -87,6 +96,7 @@ app.UseRouting();
 
 app.UseAuthentication(); // Add authentication middleware
 app.UseAuthorization();  // Add authorization middleware
+app.UseCors("AllowNextJs");
 
 app.MapControllerRoute(
     name: "file",
