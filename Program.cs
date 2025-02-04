@@ -64,6 +64,15 @@ builder.Services.AddHttpClient<IChatService, GroqChatService>();
 builder.Services.AddScoped<IChatService, GroqChatService>();
 
 builder.Services.AddControllersWithViews();
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowNextJs", policy =>
+    {
+        policy.WithOrigins("http://localhost:3000")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 
 // Configure email sender service (optional)
@@ -89,6 +98,7 @@ app.UseRouting();
 
 app.UseAuthentication(); // Add authentication middleware
 app.UseAuthorization();  // Add authorization middleware
+app.UseCors("AllowNextJs");
 
 app.MapControllerRoute(
     name: "file",

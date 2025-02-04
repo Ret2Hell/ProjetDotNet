@@ -5,7 +5,7 @@ namespace ProjetDotNet.Service;
 
 public interface IAuthService
 {
-    Task<string> LoginAsync(LoginViewModel model);
-    Task<(bool isSuccess, List<string> errors)> RegisterAsync(RegisterViewModel model);
-    Task<bool> ConfirmEmailAsync(string userId, string token);
+    Task<LoginResponse> LoginAsync(LoginViewModel model);
+    Task<RegisterResponse> RegisterAsync(RegisterViewModel model);
+    Task<ConfirmEmailResponse> ConfirmEmailAsync(string userId, string token);
 }
