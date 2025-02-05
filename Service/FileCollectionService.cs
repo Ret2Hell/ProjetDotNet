@@ -101,16 +101,23 @@ public class FileCollectionService : IFileCollectionService
 
     public async Task<FileCollectionModel> CreateFileCollectionAsync(FileCollectionModel fileCollection)
     {
-        _context.FileCollections.Add(fileCollection);
-        await _context.SaveChangesAsync();
         if (fileCollection.ParentCollectionId.HasValue)
         {
             fileCollection.ParentCollection = await _context.FileCollections
-                .FindAsync(fileCollection.ParentCollectionId);
+                .FirstOrDefaultAsync(fc => fc.Id == fileCollection.ParentCollectionId);
+
+            if (fileCollection.ParentCollection == null)
+            {
+                throw new InvalidOperationException("Parent collection not found.");
+            }
         }
+
+        _context.FileCollections.Add(fileCollection);
+        await _context.SaveChangesAsync();
 
         return fileCollection;
     }
+
 
     public async Task UpdateFileCollectionAsync(int id, String name)
     {

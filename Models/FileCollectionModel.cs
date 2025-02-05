@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 
 namespace ProjetDotNet.Models
 {
@@ -21,6 +22,7 @@ namespace ProjetDotNet.Models
         
         [ForeignKey("ParentCollectionId")] 
         public int? ParentCollectionId { get; set; }
+        [JsonIgnore]
         public FileCollectionModel? ParentCollection { get; set; }
     }
 }
